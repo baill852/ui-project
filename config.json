@@ -1,0 +1,9 @@
+{
+    "host": "127.0.0.1",
+    "port": 8888,
+    "secretKey": "chehung",
+    "log": {
+        "logLevel": 3,
+        "skip": 4
+    }
+}
