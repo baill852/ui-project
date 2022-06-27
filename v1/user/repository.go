@@ -21,6 +21,12 @@ func NewUserRepository(ctx context.Context, log logger.LogUsecase, client *gorm.
 	}
 }
 
+func (u *userRepository) GetUserByAccount(ctx context.Context, account string) (data User, err error) {
+	result := u.client.First(&data, "acct = ?", account)
+
+	return data, result.Error
+}
+
 func (u *userRepository) GetUserList(ctx context.Context, name string) (data []User, err error) {
 	result := u.client
 

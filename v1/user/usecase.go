@@ -20,3 +20,7 @@ func NewUserUsecase(ctx context.Context, log logger.LogUsecase, userRepository U
 func (u *userUsecase) GetUserList(ctx context.Context, name string) ([]User, error) {
 	return u.userRepository.GetUserList(ctx, name)
 }
+
+func (u *userUsecase) GetUserByAccount(ctx context.Context, account string) (User, error) {
+	return u.userRepository.GetUserByAccount(ctx, account)
+}

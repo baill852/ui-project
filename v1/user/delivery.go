@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"ui-project/lib"
 	"ui-project/logger"
+
+	"github.com/gorilla/mux"
 )
 
 type usersDelivery struct {
@@ -27,6 +29,29 @@ func (u *usersDelivery) GetUserList(w http.ResponseWriter, r *http.Request) {
 	data, err := u.userUsecase.GetUserList(ctx, name)
 	if err != nil {
 		u.log.LogErr(ctx, "GetUserList failed", err)
+		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(b)
+		return
+	}
+
+	b, err := json.Marshal(data)
+	if err != nil {
+		u.log.LogErr(ctx, "Marshal failed", err)
+
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
+}
+
+func (u *usersDelivery) GetUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	ctx := r.Context()
+	data, err := u.userUsecase.GetUserByAccount(ctx, vars["account"])
+	if err != nil {
+		u.log.LogErr(ctx, "GetUser failed", err)
 		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(b)
