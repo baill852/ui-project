@@ -9,7 +9,7 @@ import (
 type User struct {
 	Acct     string `gorm:"primaryKey"`
 	Pwd      string
-	FullName string
+	Fullname string
 	CreateAt time.Time `gorm:"autoUpdateTime"`
 	UpdateAt time.Time `gorm:"autoCreateTime"`
 }
@@ -19,9 +19,9 @@ type UserDelivery interface {
 }
 
 type UserUsecase interface {
-	GetUserList(context.Context) ([]User, error)
+	GetUserList(ctx context.Context, name string) ([]User, error)
 }
 
 type UserRepository interface {
-	GetUserList(context.Context) ([]User, error)
+	GetUserList(ctx context.Context, name string) ([]User, error)
 }

@@ -15,6 +15,7 @@ type Route struct {
 	Name        string
 	Method      string
 	Pattern     string
+	Queries     []string
 	Secure      bool
 	HandlerFunc http.HandlerFunc
 }

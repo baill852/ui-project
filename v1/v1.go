@@ -28,5 +28,13 @@ func Register(ctx context.Context, logger logger.LogUsecase, router *mux.Router,
 			HandlerFunc: userDelivery.GetUserList,
 			Secure:      false,
 		},
+		{
+			Name:        "GetUserList",
+			Method:      "GET",
+			Pattern:     "/v1/users",
+			Queries:     []string{"fullname", "{fullname}"},
+			HandlerFunc: userDelivery.GetUserList,
+			Secure:      false,
+		},
 	}
 }

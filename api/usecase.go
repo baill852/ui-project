@@ -38,8 +38,9 @@ func (u *apiUsecase) RegisterRoute(ctx context.Context, routes []Route) {
 		u.handler.
 			Methods(route.Method).
 			Path(route.Pattern).
-			Name(route.Name).
-			Handler(handler)
+			Handler(handler).
+			Queries(route.Queries...).
+			Name(route.Name)
 	}
 }
 
