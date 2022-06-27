@@ -1,7 +1,14 @@
 {
     "host": "127.0.0.1",
     "port": 8888,
-    "secretKey": "chehung",
+    "secretKey": "Chehung",
+    "db": {
+        "host": "127.0.0.1",
+        "port": 5432,
+        "name": "postgres",
+        "user": "ui_test",
+        "password": "ui_test"
+    },
     "log": {
         "logLevel": 3,
         "skip": 4

@@ -1,5 +1,9 @@
 package logger
 
+import (
+	"context"
+)
+
 const (
 	LogLevelErr int = iota
 	LogLevelWarning
@@ -20,8 +24,10 @@ type LoggerSetting struct {
 }
 
 type LogUsecase interface {
-	LogErr(requestId string, msg ...interface{})
-	LogWarning(requestId string, msg ...interface{})
-	LogInfo(requestId string, msg ...interface{})
-	LogDebug(requestId string, msg ...interface{})
+	SetRequestId(ctx context.Context) context.Context
+	GetRequestId(ctx context.Context) string
+	LogErr(ctx context.Context, msg ...interface{})
+	LogWarning(ctx context.Context, msg ...interface{})
+	LogInfo(ctx context.Context, msg ...interface{})
+	LogDebug(ctx context.Context, msg ...interface{})
 }

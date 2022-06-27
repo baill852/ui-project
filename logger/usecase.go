@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -8,14 +9,11 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/google/uuid"
 )
 
-type TplinkLogger struct {
-	enableColor bool
-	logger      *log.Logger
-	LogLevel    int
-	skip        int
-}
+const ContextRequestID string = "requestID"
 
 // log format
 // %d{MM-dd-yyyy HH:mm:ss.SSS} %p [%t] [%traceId] [%X{REQUEST_ID}] %c{1.}: %m%n
@@ -52,54 +50,70 @@ func CreateLogger(settings LoggerSetting) LogUsecase {
 	}
 }
 
-func (tl *Logger) LogErr(requestId string, msgs ...interface{}) {
-	if tl.LogLevel < LogLevelErr {
+func (l *Logger) SetRequestId(ctx context.Context) context.Context {
+	key := uuid.New()
+
+	return context.WithValue(ctx, ContextRequestID, key.String())
+}
+
+func (l *Logger) GetRequestId(ctx context.Context) string {
+	requestId := ctx.Value(ContextRequestID)
+
+	if value, ok := requestId.(string); ok {
+		return value
+	}
+
+	return ""
+}
+
+func (l *Logger) LogErr(ctx context.Context, msgs ...interface{}) {
+	if l.LogLevel < LogLevelErr {
 		return
 	}
 
-	tl.logMessage(errLabel, requestId, fmt.Sprintln(msgs...))
+	l.logMessage(errLabel, l.GetRequestId(ctx), fmt.Sprintln(msgs...))
 }
 
-func (tl *Logger) LogWarning(requestId string, msgs ...interface{}) {
-	if tl.LogLevel < LogLevelWarning {
+func (l *Logger) LogWarning(ctx context.Context, msgs ...interface{}) {
+	if l.LogLevel < LogLevelWarning {
 		return
 	}
 
-	tl.logMessage(warnLabel, requestId, fmt.Sprintln(msgs...))
+	l.logMessage(warnLabel, l.GetRequestId(ctx), fmt.Sprintln(msgs...))
 }
 
-func (tl *Logger) LogInfo(requestId string, msgs ...interface{}) {
-	if tl.LogLevel < LogLevelInfo {
+func (l *Logger) LogInfo(ctx context.Context, msgs ...interface{}) {
+	if l.LogLevel < LogLevelInfo {
 		return
 	}
 
-	tl.logMessage(infoLabel, requestId, fmt.Sprintln(msgs...))
+	l.logMessage(infoLabel, l.GetRequestId(ctx), fmt.Sprintln(msgs...))
 }
 
-func (tl *Logger) LogDebug(requestId string, msgs ...interface{}) {
-	if tl.LogLevel < LogLevelDebug {
+func (l *Logger) LogDebug(ctx context.Context, msgs ...interface{}) {
+	if l.LogLevel < LogLevelDebug {
 		return
 	}
 
-	tl.logMessage(debugLabel, requestId, fmt.Sprintln(msgs...))
+	l.logMessage(debugLabel, l.GetRequestId(ctx), fmt.Sprintln(msgs...))
 }
 
-func (tl *Logger) logMessage(logLevel string, requestId string, msg string) {
+func (l *Logger) logMessage(logLevel string, requestId string, msg string) {
 	msg = strings.TrimRight(msg, "\n")
 	now := &loggerTime{Time: time.Now()}
 
-	tl.Logger.Printf(
+	l.Logger.Printf(
 		"%s %-6s [%d] [%s] %s %s\n",
 		now,
 		logLevel,
 		syscall.Gettid(),
 		requestId,
 		msg,
-		getFunctionPosition(tl.Skip),
+		l.getFunctionPosition(l.Skip),
 	)
 }
 
-func getFunctionPosition(skip int) (result string) {
+func (l *Logger) getFunctionPosition(skip int) (result string) {
 	var (
 		function uintptr
 		fileName string
