@@ -3,23 +3,30 @@ package v1
 import (
 	"context"
 	"ui-project/api"
+	"ui-project/logger"
 	"ui-project/v1/user"
 
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 )
 
-func Register(ctx context.Context, router *mux.Router, client *gorm.DB) []api.Route {
+func Register(ctx context.Context, logger logger.LogUsecase, router *mux.Router, client *gorm.DB) []api.Route {
 	// Repository
-
-	userRepo := user.NewUserRepository(ctx, client)
+	userRepo := user.NewUserRepository(ctx, logger, client)
 
 	// Usecase
-	userUsecase := user.NewUserUsecase(ctx, userRepo)
+	userUsecase := user.NewUserUsecase(ctx, logger, userRepo)
 
 	// Delivery
-	userDelivery := user.NewUserDelivery(ctx, userUsecase)
+	userDelivery := user.NewUserDelivery(ctx, logger, userUsecase)
 
 	return []api.Route{
+		{
+			Name:        "GetUserList",
+			Method:      "GET",
+			Pattern:     "/v1/users",
+			HandlerFunc: userDelivery.GetUserList,
+			Secure:      false,
+		},
 	}
 }

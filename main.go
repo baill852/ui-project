@@ -31,12 +31,12 @@ func main() {
 	r := mux.NewRouter()
 
 	database := database.NewDatabase(ctx, logger)
-	rs := v1.Register(ctx, r, database.GetClient())
+	database.Bootstrap(ctx)
 
+	rs := v1.Register(ctx, logger, r, database.GetClient())
 	app := api.NewApiUsecase(ctx, logger, r)
 	app.RegisterRoute(ctx, rs)
 
-	database.Bootstrap(ctx)
 	app.Bootstrap(ctx)
 
 	// Graceful Shutdown

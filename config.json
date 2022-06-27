@@ -5,7 +5,7 @@
     "db": {
         "host": "127.0.0.1",
         "port": 5432,
-        "name": "postgres",
+        "name": "ui_test",
         "user": "ui_test",
         "password": "ui_test"
     },
