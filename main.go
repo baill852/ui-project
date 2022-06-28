@@ -6,6 +6,7 @@ import (
 	"syscall"
 	"time"
 	"ui-project/api"
+	"ui-project/auth"
 	"ui-project/database"
 	"ui-project/lib"
 	"ui-project/logger"
@@ -33,8 +34,9 @@ func main() {
 	database := database.NewDatabase(ctx, logger)
 	database.Bootstrap(ctx)
 
-	rs := v1.Register(ctx, logger, r, database.GetClient())
-	app := api.NewApiUsecase(ctx, logger, r)
+	auth := auth.NewAuthUsecase()
+	rs := v1.Register(ctx, logger, auth, r, database.GetClient())
+	app := api.NewApiUsecase(ctx, logger, auth, r)
 	app.RegisterRoute(ctx, rs)
 
 	app.Bootstrap(ctx)

@@ -3,7 +3,14 @@ package user
 import (
 	"context"
 	"ui-project/logger"
+
+	"github.com/golang-jwt/jwt"
 )
+
+type authClaims struct {
+	jwt.StandardClaims
+	Account string `json:"acct"`
+}
 
 type userUsecase struct {
 	log            logger.LogUsecase
@@ -15,6 +22,10 @@ func NewUserUsecase(ctx context.Context, log logger.LogUsecase, userRepository U
 		log:            log,
 		userRepository: userRepository,
 	}
+}
+
+func (u *userUsecase) VerifyUser(ctx context.Context, user User) bool {
+	return u.userRepository.VerifyUser(ctx, user)
 }
 
 func (u *userUsecase) GetUserList(ctx context.Context, name string) ([]User, error) {

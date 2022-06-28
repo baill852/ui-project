@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
+	"ui-project/auth"
 	"ui-project/logger"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 )
@@ -16,12 +19,14 @@ const ContextRequestID string = "requestID"
 type apiUsecase struct {
 	http    *http.Server
 	log     logger.LogUsecase
+	auth    auth.AuthUsecase
 	handler *mux.Router
 }
 
-func NewApiUsecase(ctx context.Context, log logger.LogUsecase, handler *mux.Router) ApiUsecase {
+func NewApiUsecase(ctx context.Context, log logger.LogUsecase, auth auth.AuthUsecase, handler *mux.Router) ApiUsecase {
 	return &apiUsecase{
 		log:     log,
+		auth:    auth,
 		handler: handler,
 	}
 }
@@ -95,7 +100,23 @@ func (u *apiUsecase) headerMiddleware(next http.Handler) http.Handler {
 
 func (u *apiUsecase) authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//TODO: Add JWT authentication
+		ctx := r.Context()
+		tokenString := r.Header.Get("Authorization")
+		if len(tokenString) == 0 {
+			http.Error(w, "Missing Authorization Header", http.StatusUnauthorized)
+			return
+		}
+		tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
+		claims, err := u.auth.ValidateToken(tokenString)
+		if err != nil {
+			u.log.LogErr(ctx, err)
+			http.Error(w, "Error verifying JWT token: "+err.Error(), http.StatusUnauthorized)
+			return
+		}
+		account := claims.(jwt.MapClaims)["account"].(string)
+
+		r.Header.Set("account", account)
+
 		next.ServeHTTP(w, r)
 	})
 }

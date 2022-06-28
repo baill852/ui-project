@@ -42,3 +42,18 @@ func (u *userRepository) SetUser(ctx context.Context, user User) error {
 	result := u.client.Create(&user)
 	return result.Error
 }
+
+func (u *userRepository) VerifyUser(ctx context.Context, user User) bool {
+	result := u.client.First(&user, "acct = ? AND pwd = ?", user.Acct, user.Pwd)
+
+	if result.Error != nil {
+		u.log.LogErr(ctx, "VerifyUser", result.Error)
+		return false
+	}
+
+	if result.RowsAffected == 0 {
+		return false
+	}
+
+	return true
+}
