@@ -30,7 +30,7 @@ func (u *usersDelivery) GetUserList(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		u.log.LogErr(ctx, "GetUserList failed", err)
 		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write(b)
 		return
 	}
@@ -53,7 +53,7 @@ func (u *usersDelivery) GetUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		u.log.LogErr(ctx, "GetUser failed", err)
 		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write(b)
 		return
 	}
@@ -66,4 +66,20 @@ func (u *usersDelivery) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(b)
+}
+
+func (u *usersDelivery) CreateUsers(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	user := User{}
+	json.NewDecoder(r.Body).Decode(&user)
+	if err := u.userUsecase.SetUser(ctx, user); err != nil {
+		u.log.LogErr(ctx, "CreateUsers failed", err)
+		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(b)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("OK")
 }

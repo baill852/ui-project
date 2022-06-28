@@ -24,3 +24,7 @@ func (u *userUsecase) GetUserList(ctx context.Context, name string) ([]User, err
 func (u *userUsecase) GetUserByAccount(ctx context.Context, account string) (User, error) {
 	return u.userRepository.GetUserByAccount(ctx, account)
 }
+
+func (u *userUsecase) SetUser(ctx context.Context, user User) error {
+	return u.userRepository.SetUser(ctx, user)
+}

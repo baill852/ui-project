@@ -43,5 +43,12 @@ func Register(ctx context.Context, logger logger.LogUsecase, router *mux.Router,
 			HandlerFunc: userDelivery.GetUser,
 			Secure:      false,
 		},
+		{
+			Name:        "CreateUsers",
+			Method:      "POST",
+			Pattern:     "/v1/users",
+			HandlerFunc: userDelivery.CreateUsers,
+			Secure:      false,
+		},
 	}
 }

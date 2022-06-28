@@ -37,3 +37,8 @@ func (u *userRepository) GetUserList(ctx context.Context, name string) (data []U
 	result = result.Find(&data)
 	return data, result.Error
 }
+
+func (u *userRepository) SetUser(ctx context.Context, user User) error {
+	result := u.client.Create(&user)
+	return result.Error
+}
