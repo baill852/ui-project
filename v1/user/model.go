@@ -17,6 +17,7 @@ type User struct {
 type UserDelivery interface {
 	GetUserList(http.ResponseWriter, *http.Request)
 	GetUser(http.ResponseWriter, *http.Request)
+	DeleteUser(http.ResponseWriter, *http.Request)
 	CreateUsers(http.ResponseWriter, *http.Request)
 	Login(http.ResponseWriter, *http.Request)
 }
@@ -26,6 +27,7 @@ type UserUsecase interface {
 	GetUserList(ctx context.Context, name string) ([]User, error)
 	SetUser(ctx context.Context, user User) error
 	VerifyUser(ctx context.Context, user User) bool
+	DeleteUserByAccount(ctx context.Context, account string) error
 }
 
 type UserRepository interface {
@@ -33,4 +35,5 @@ type UserRepository interface {
 	GetUserList(ctx context.Context, name string) ([]User, error)
 	SetUser(ctx context.Context, user User) error
 	VerifyUser(ctx context.Context, user User) bool
+	DeleteUserByAccount(ctx context.Context, account string) error
 }

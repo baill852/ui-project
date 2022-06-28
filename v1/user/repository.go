@@ -57,3 +57,8 @@ func (u *userRepository) VerifyUser(ctx context.Context, user User) bool {
 
 	return true
 }
+
+func (u *userRepository) DeleteUserByAccount(ctx context.Context, account string) error {
+	result := u.client.Where("acct = ?", account).Delete(&User{})
+	return result.Error
+}

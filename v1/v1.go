@@ -45,6 +45,13 @@ func Register(ctx context.Context, logger logger.LogUsecase, authUsecase auth.Au
 			Secure:      true,
 		},
 		{
+			Name:        "DeleteUser",
+			Method:      "DELETE",
+			Pattern:     "/v1/users/{account}",
+			HandlerFunc: userDelivery.DeleteUser,
+			Secure:      true,
+		},
+		{
 			Name:        "CreateUsers",
 			Method:      "POST",
 			Pattern:     "/v1/users",

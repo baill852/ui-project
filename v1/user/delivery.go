@@ -71,6 +71,23 @@ func (u *usersDelivery) GetUser(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+func (u *usersDelivery) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	ctx := r.Context()
+	err := u.userUsecase.DeleteUserByAccount(ctx, vars["account"])
+	if err != nil {
+		u.log.LogErr(ctx, "GetUser failed", err)
+		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(b)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("OK")
+}
+
 func (u *usersDelivery) CreateUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user := User{}
