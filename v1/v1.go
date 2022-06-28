@@ -52,6 +52,13 @@ func Register(ctx context.Context, logger logger.LogUsecase, authUsecase auth.Au
 			Secure:      true,
 		},
 		{
+			Name:        "UpdateUser",
+			Method:      "PUT",
+			Pattern:     "/v1/users/{account}",
+			HandlerFunc: userDelivery.UpdateUser,
+			Secure:      true,
+		},
+		{
 			Name:        "CreateUsers",
 			Method:      "POST",
 			Pattern:     "/v1/users",

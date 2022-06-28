@@ -62,3 +62,12 @@ func (u *userRepository) DeleteUserByAccount(ctx context.Context, account string
 	result := u.client.Where("acct = ?", account).Delete(&User{})
 	return result.Error
 }
+
+func (u *userRepository) UpdateUser(ctx context.Context, account string, user User) error {
+	result := u.client.Model(&User{}).
+		Omit("acct", "create_at", "update_at").
+		Where("acct = ?", account).
+		Updates(user)
+
+	return result.Error
+}

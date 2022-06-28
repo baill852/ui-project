@@ -43,3 +43,7 @@ func (u *userUsecase) SetUser(ctx context.Context, user User) error {
 func (u *userUsecase) DeleteUserByAccount(ctx context.Context, account string) error {
 	return u.userRepository.DeleteUserByAccount(ctx, account)
 }
+
+func (u *userUsecase) UpdateUser(ctx context.Context, account string, user User) error {
+	return u.userRepository.UpdateUser(ctx, account, user)
+}

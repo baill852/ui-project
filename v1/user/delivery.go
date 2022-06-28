@@ -88,6 +88,25 @@ func (u *usersDelivery) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("OK")
 }
 
+func (u *usersDelivery) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	vars := mux.Vars(r)
+	user := User{}
+	json.NewDecoder(r.Body).Decode(&user)
+
+	err := u.userUsecase.UpdateUser(ctx, vars["account"], user)
+	if err != nil {
+		u.log.LogErr(ctx, "GetUser failed", err)
+		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(b)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("OK")
+}
+
 func (u *usersDelivery) CreateUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user := User{}
