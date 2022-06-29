@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"time"
+	"ui-project/lib"
 )
 
 type User struct {
@@ -25,7 +26,7 @@ type UserDelivery interface {
 
 type UserUsecase interface {
 	GetUserByAccount(ctx context.Context, account string) (User, error)
-	GetUserList(ctx context.Context, name string) ([]User, error)
+	GetUserList(ctx context.Context, name string, pagination lib.Pagination) ([]User, error)
 	SetUser(ctx context.Context, user User) error
 	VerifyUser(ctx context.Context, user User) bool
 	DeleteUserByAccount(ctx context.Context, account string) error
@@ -34,7 +35,7 @@ type UserUsecase interface {
 
 type UserRepository interface {
 	GetUserByAccount(ctx context.Context, account string) (User, error)
-	GetUserList(ctx context.Context, name string) ([]User, error)
+	GetUserList(ctx context.Context, name string, pagination lib.Pagination) ([]User, error)
 	SetUser(ctx context.Context, user User) error
 	VerifyUser(ctx context.Context, user User) bool
 	DeleteUserByAccount(ctx context.Context, account string) error

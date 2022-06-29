@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"ui-project/lib"
 	"ui-project/logger"
 
 	"gorm.io/gorm"
@@ -27,14 +28,14 @@ func (u *userRepository) GetUserByAccount(ctx context.Context, account string) (
 	return data, result.Error
 }
 
-func (u *userRepository) GetUserList(ctx context.Context, name string) (data []User, err error) {
+func (u *userRepository) GetUserList(ctx context.Context, name string, pagination lib.Pagination) (data []User, err error) {
 	result := u.client
 
 	if len(name) > 0 {
 		result = result.Where("fullname LIKE ?", "%"+name+"%")
 	}
 
-	result = result.Find(&data)
+	result = result.Offset(pagination.GetOffset()).Limit(pagination.GetCount()).Order(pagination.GetOrderString()).Find(&data)
 	return data, result.Error
 }
 

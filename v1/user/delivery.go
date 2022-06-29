@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"ui-project/auth"
 	"ui-project/lib"
 	"ui-project/logger"
@@ -26,10 +27,30 @@ func NewUserDelivery(ctx context.Context, log logger.LogUsecase, userUsecase Use
 }
 
 func (u *usersDelivery) GetUserList(w http.ResponseWriter, r *http.Request) {
-	name := r.FormValue("fullname")
-
 	ctx := r.Context()
-	data, err := u.userUsecase.GetUserList(ctx, name)
+	name := r.FormValue("fullname")
+	page, pageErr := strconv.Atoi(r.FormValue("pagination"))
+	count, countErr := strconv.Atoi(r.FormValue("count"))
+	if pageErr != nil || countErr != nil {
+		u.log.LogErr(ctx, "strconv.Atoi failed")
+		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(b)
+		return
+	}
+	orderBy := r.FormValue("orderBy")
+	sort := r.FormValue("sort")
+	pagination := lib.NewPagination(page, count, orderBy, sort)
+
+	if err := pagination.Verify([]string{"acct", "pwd", "fullname", "create_at", "update_at"}); err != nil {
+		u.log.LogErr(ctx, "pagination verify failed", err)
+		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(b)
+		return
+	}
+	data, err := u.userUsecase.GetUserList(ctx, name, pagination)
+
 	if err != nil {
 		u.log.LogErr(ctx, "GetUserList failed", err)
 		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")

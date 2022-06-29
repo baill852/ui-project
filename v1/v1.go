@@ -29,11 +29,17 @@ func Register(ctx context.Context, logger logger.LogUsecase, authUsecase auth.Au
 			HandlerFunc: userDelivery.GetUserList,
 			Secure:      true,
 		},
+		// TODO: Regex not working
 		{
-			Name:        "GetUserList",
-			Method:      "GET",
-			Pattern:     "/v1/users",
-			Queries:     []string{"fullname", "{fullname}"},
+			Name:    "GetUserList2",
+			Method:  "GET",
+			Pattern: "/v1/users",
+			Queries: []string{
+				"fullname", "{fullname}",
+				"page", "{page:^[0-9]+$}",
+				"count", "{count:^[0-9]+$}",
+				"orderBy", "{orderBy}",
+				"sort", "{sort}"},
 			HandlerFunc: userDelivery.GetUserList,
 			Secure:      true,
 		},

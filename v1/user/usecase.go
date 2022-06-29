@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"ui-project/lib"
 	"ui-project/logger"
 
 	"github.com/golang-jwt/jwt"
@@ -28,8 +29,8 @@ func (u *userUsecase) VerifyUser(ctx context.Context, user User) bool {
 	return u.userRepository.VerifyUser(ctx, user)
 }
 
-func (u *userUsecase) GetUserList(ctx context.Context, name string) ([]User, error) {
-	return u.userRepository.GetUserList(ctx, name)
+func (u *userUsecase) GetUserList(ctx context.Context, name string, pagination lib.Pagination) ([]User, error) {
+	return u.userRepository.GetUserList(ctx, name, pagination)
 }
 
 func (u *userUsecase) GetUserByAccount(ctx context.Context, account string) (User, error) {
