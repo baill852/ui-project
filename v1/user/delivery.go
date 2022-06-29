@@ -28,6 +28,29 @@ func NewUserDelivery(ctx context.Context, log logger.LogUsecase, userUsecase Use
 
 func (u *usersDelivery) GetUserList(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	pagination := lib.NewPagination(1, 50, "acct", "asc")
+	data, err := u.userUsecase.GetUserList(ctx, "", pagination)
+
+	if err != nil {
+		u.log.LogErr(ctx, "GetUserList failed", err)
+		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(b)
+		return
+	}
+
+	b, err := json.Marshal(data)
+	if err != nil {
+		u.log.LogErr(ctx, "Marshal failed", err)
+
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
+}
+
+func (u *usersDelivery) GetUserListForQuery(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	name := r.FormValue("fullname")
 	page, pageErr := strconv.Atoi(r.FormValue("pagination"))
 	count, countErr := strconv.Atoi(r.FormValue("count"))

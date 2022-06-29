@@ -17,6 +17,7 @@ type User struct {
 
 type UserDelivery interface {
 	GetUserList(http.ResponseWriter, *http.Request)
+	GetUserListForQuery(w http.ResponseWriter, r *http.Request)
 	GetUser(http.ResponseWriter, *http.Request)
 	DeleteUser(http.ResponseWriter, *http.Request)
 	UpdateUser(http.ResponseWriter, *http.Request)

@@ -40,7 +40,7 @@ func Register(ctx context.Context, logger logger.LogUsecase, authUsecase auth.Au
 				"count", "{count:^[0-9]+$}",
 				"orderBy", "{orderBy}",
 				"sort", "{sort}"},
-			HandlerFunc: userDelivery.GetUserList,
+			HandlerFunc: userDelivery.GetUserListForQuery,
 			Secure:      true,
 		},
 		{
