@@ -26,6 +26,22 @@ func NewUserDelivery(ctx context.Context, log logger.LogUsecase, userUsecase Use
 	}
 }
 
+// GetUserList
+// @Summary  Get User list
+// @Description Get User list
+// @Tags User
+// @Accept json
+// @Produce json
+// @param Authorization header string true "Authorization"
+// @Param fullname query string false "fullname"
+// @Param page query int false "page"
+// @Param count query int false "count" Enums(10, 30, 50, 100)
+// @Param orderBy query string false "orderBy" Enums(acct, pwd, fullname, create_at, update_at)
+// @Param sort query string false "sort" Enums(asc, desc)
+// @success 200 {array} User
+// @Failure 400 {object} lib.ErrorResponse "Bad Request"
+// @Security ApiKeyAuth
+// @Router /users [GET]
 func (u *usersDelivery) GetUserList(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	pagination := lib.NewPagination(1, 50, "acct", "asc")
@@ -54,8 +70,9 @@ func (u *usersDelivery) GetUserListForQuery(w http.ResponseWriter, r *http.Reque
 	name := r.FormValue("fullname")
 	page, pageErr := strconv.Atoi(r.FormValue("pagination"))
 	count, countErr := strconv.Atoi(r.FormValue("count"))
+
 	if pageErr != nil || countErr != nil {
-		u.log.LogErr(ctx, "strconv.Atoi failed")
+		u.log.LogErr(ctx, "strconv.Atoi failed", pageErr, countErr)
 		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(b)
@@ -92,6 +109,17 @@ func (u *usersDelivery) GetUserListForQuery(w http.ResponseWriter, r *http.Reque
 	w.Write(b)
 }
 
+// GetUser
+// @Summary  Get User
+// @Description Get User
+// @Tags User
+// @Accept json
+// @Produce json
+// @param Authorization header string true "Authorization"
+// @success 200 {object} User
+// @Failure 400 {object} lib.ErrorResponse "Bad Request"
+// @Security ApiKeyAuth
+// @Router /users/{account} [GET]
 func (u *usersDelivery) GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -115,6 +143,17 @@ func (u *usersDelivery) GetUser(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+// DeleteUser
+// @Summary  Delete User
+// @Description Delete User
+// @Tags User
+// @Accept json
+// @Produce json
+// @param Authorization header string true "Authorization"
+// @success 200 {string} string "OK"
+// @Failure 400 {object} lib.ErrorResponse "Bad Request"
+// @Security ApiKeyAuth
+// @Router /users/{account} [DELETE]
 func (u *usersDelivery) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -132,6 +171,19 @@ func (u *usersDelivery) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("OK")
 }
 
+// UpdateUser
+// @Summary  Update User
+// @Description Update User
+// @Tags User
+// @Accept json
+// @Produce json
+// @param Authorization header string true "Authorization"
+// @Param pwd body string false "pwd"
+// @Param fullname body string false "fullname"
+// @success 200 {string} string "OK"
+// @Failure 400 {object} lib.ErrorResponse "Bad Request"
+// @Security ApiKeyAuth
+// @Router /users/{account} [PUT]
 func (u *usersDelivery) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	vars := mux.Vars(r)
@@ -151,6 +203,19 @@ func (u *usersDelivery) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("OK")
 }
 
+// CreateUsers
+// @Summary  Create User
+// @Description Create User
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param acct body string true "acct"
+// @Param pwd body string true "pwd"
+// @Param fullname body string true "fullname"
+// @success 200 {string} string "ok"
+// @Failure 400 {object} lib.ErrorResponse "Bad Request"
+// @Security ApiKeyAuth
+// @Router /users [POST]
 func (u *usersDelivery) CreateUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user := User{}
@@ -167,6 +232,18 @@ func (u *usersDelivery) CreateUsers(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("OK")
 }
 
+// Login
+// @Summary  Login
+// @Description Get jwt token
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param acct body string true "acct"
+// @Param pwd body string true "pwd"
+// @success 200 {object} UserToken
+// @Failure 400 {object} lib.ErrorResponse "Bad Request"
+// @Security ApiKeyAuth
+// @Router /users [POST]
 func (u *usersDelivery) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user := User{}
@@ -188,6 +265,15 @@ func (u *usersDelivery) Login(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 		return
 	}
+
+	b, err := json.Marshal(UserToken{
+		Token: token,
+	})
+	if err != nil {
+		u.log.LogErr(ctx, "Marshal failed", err)
+
+	}
+
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	w.Write(b)
 }

@@ -8,11 +8,15 @@ import (
 )
 
 type User struct {
-	Acct     string `gorm:"primaryKey"`
-	Pwd      string
-	Fullname string
-	CreateAt time.Time `gorm:"autoUpdateTime"`
-	UpdateAt time.Time `gorm:"autoCreateTime"`
+	Acct     string    `gorm:"primaryKey" example:"test"`
+	Pwd      string    `example:"test"`
+	Fullname string    `example:"test"`
+	CreateAt time.Time `gorm:"autoUpdateTime" example:"2022-06-28T22:22:43.292795+08:00"`
+	UpdateAt time.Time `gorm:"autoCreateTime" example:"2022-06-28T22:22:43.292795+08:00"`
+}
+
+type UserToken struct {
+	Token string
 }
 
 type UserDelivery interface {
