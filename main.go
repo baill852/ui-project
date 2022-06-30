@@ -13,6 +13,7 @@ import (
 	"ui-project/lib"
 	"ui-project/logger"
 	v1 "ui-project/v1"
+	ws "ui-project/websocket"
 
 	_ "ui-project/docs"
 
@@ -66,7 +67,8 @@ func main() {
 	database.Bootstrap(ctx)
 
 	auth := auth.NewAuthUsecase()
-	rs := v1.Register(ctx, logger, auth, r, database.GetClient())
+	server := ws.NewServer()
+	rs := v1.Register(ctx, logger, auth, r, database.GetClient(), server)
 	app := api.NewApiUsecase(ctx, logger, auth, r)
 	app.RegisterRoute(ctx, rs)
 

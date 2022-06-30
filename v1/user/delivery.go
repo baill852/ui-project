@@ -3,26 +3,64 @@ package user
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"ui-project/auth"
 	"ui-project/lib"
 	"ui-project/logger"
+	ws "ui-project/websocket"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
 type usersDelivery struct {
 	log         logger.LogUsecase
 	userUsecase UserUsecase
 	authUsecase auth.AuthUsecase
+	ws          ws.Server
 }
 
-func NewUserDelivery(ctx context.Context, log logger.LogUsecase, userUsecase UserUsecase, authUsecase auth.AuthUsecase) UserDelivery {
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func NewUserDelivery(ctx context.Context, ws ws.Server, log logger.LogUsecase, userUsecase UserUsecase, authUsecase auth.AuthUsecase) UserDelivery {
 	return &usersDelivery{
+		ws:          ws,
 		log:         log,
 		userUsecase: userUsecase,
 		authUsecase: authUsecase,
+	}
+}
+
+func (u *usersDelivery) Socket(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	client := ws.Client{
+		Id:   uuid.Must(uuid.NewRandom()).String(),
+		Conn: conn,
+	}
+	u.ws.AddClient(client)
+
+	// ... Use conn to send and receive messages.
+	for {
+		_, _, err := conn.ReadMessage()
+		if err != nil {
+			u.log.LogErr(ctx, "socket client failed", err)
+			u.ws.RemoveClient(client)
+			return
+		}
 	}
 }
 
@@ -49,7 +87,7 @@ func (u *usersDelivery) GetUserList(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		u.log.LogErr(ctx, "GetUserList failed", err)
-		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		_, b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(b)
 		return
@@ -73,7 +111,7 @@ func (u *usersDelivery) GetUserListForQuery(w http.ResponseWriter, r *http.Reque
 
 	if pageErr != nil || countErr != nil {
 		u.log.LogErr(ctx, "strconv.Atoi failed", pageErr, countErr)
-		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		_, b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(b)
 		return
@@ -84,7 +122,7 @@ func (u *usersDelivery) GetUserListForQuery(w http.ResponseWriter, r *http.Reque
 
 	if err := pagination.Verify([]string{"acct", "pwd", "fullname", "create_at", "update_at"}); err != nil {
 		u.log.LogErr(ctx, "pagination verify failed", err)
-		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), err.Error())
+		_, b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(b)
 		return
@@ -93,7 +131,7 @@ func (u *usersDelivery) GetUserListForQuery(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		u.log.LogErr(ctx, "GetUserList failed", err)
-		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		_, b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(b)
 		return
@@ -127,7 +165,7 @@ func (u *usersDelivery) GetUser(w http.ResponseWriter, r *http.Request) {
 	data, err := u.userUsecase.GetUserByAccount(ctx, vars["account"])
 	if err != nil {
 		u.log.LogErr(ctx, "GetUser failed", err)
-		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		_, b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(b)
 		return
@@ -161,7 +199,7 @@ func (u *usersDelivery) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	err := u.userUsecase.DeleteUserByAccount(ctx, vars["account"])
 	if err != nil {
 		u.log.LogErr(ctx, "GetUser failed", err)
-		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		_, b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(b)
 		return
@@ -193,7 +231,7 @@ func (u *usersDelivery) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	err := u.userUsecase.UpdateUser(ctx, vars["account"], user)
 	if err != nil {
 		u.log.LogErr(ctx, "GetUser failed", err)
-		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		_, b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(b)
 		return
@@ -222,7 +260,7 @@ func (u *usersDelivery) CreateUsers(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&user)
 	if err := u.userUsecase.SetUser(ctx, user); err != nil {
 		u.log.LogErr(ctx, "CreateUsers failed", err)
-		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		_, b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(b)
 		return
@@ -251,18 +289,20 @@ func (u *usersDelivery) Login(w http.ResponseWriter, r *http.Request) {
 
 	if check := u.userUsecase.VerifyUser(ctx, user); !check {
 		u.log.LogErr(ctx, "Login failed")
-		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		data, b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "login failed")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(b)
+		u.ws.Publish(data)
 		return
 	}
 
 	token, err := u.authUsecase.GenerateToken(user.Acct)
 	if err != nil {
 		u.log.LogErr(ctx, "GenerateToken failed")
-		b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "")
+		data, b := lib.ErrorResponseHelper(u.log.GetRequestId(ctx), "login failed")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(b)
+		u.ws.Publish(data)
 		return
 	}
 
@@ -271,7 +311,6 @@ func (u *usersDelivery) Login(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		u.log.LogErr(ctx, "Marshal failed", err)
-
 	}
 
 	w.WriteHeader(http.StatusOK)

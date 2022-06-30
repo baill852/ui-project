@@ -7,11 +7,11 @@ type ErrorResponse struct {
 	Message   string `json:"message" example:"some error message"`
 }
 
-func ErrorResponseHelper(requestId string, message string) []byte {
+func ErrorResponseHelper(requestId string, message string) (ErrorResponse, []byte) {
 	result := ErrorResponse{
 		RequestId: requestId,
 		Message:   message,
 	}
 	b, _ := json.Marshal(result)
-	return b
+	return result, b
 }

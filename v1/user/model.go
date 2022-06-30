@@ -20,6 +20,7 @@ type UserToken struct {
 }
 
 type UserDelivery interface {
+	Socket(http.ResponseWriter, *http.Request)
 	GetUserList(http.ResponseWriter, *http.Request)
 	GetUserListForQuery(w http.ResponseWriter, r *http.Request)
 	GetUser(http.ResponseWriter, *http.Request)

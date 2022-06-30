@@ -6,12 +6,13 @@ import (
 	"ui-project/auth"
 	"ui-project/logger"
 	"ui-project/v1/user"
+	ws "ui-project/websocket"
 
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 )
 
-func Register(ctx context.Context, logger logger.LogUsecase, authUsecase auth.AuthUsecase, router *mux.Router, client *gorm.DB) []api.Route {
+func Register(ctx context.Context, logger logger.LogUsecase, authUsecase auth.AuthUsecase, router *mux.Router, client *gorm.DB, ws ws.Server) []api.Route {
 	// Repository
 	userRepo := user.NewUserRepository(ctx, logger, client)
 
@@ -19,9 +20,16 @@ func Register(ctx context.Context, logger logger.LogUsecase, authUsecase auth.Au
 	userUsecase := user.NewUserUsecase(ctx, logger, userRepo)
 
 	// Delivery
-	userDelivery := user.NewUserDelivery(ctx, logger, userUsecase, authUsecase)
+	userDelivery := user.NewUserDelivery(ctx, ws, logger, userUsecase, authUsecase)
 
 	return []api.Route{
+		{
+			Name:        "Socket",
+			Method:      "GET",
+			Pattern:     "/v1/socket",
+			HandlerFunc: userDelivery.Socket,
+			Secure:      false,
+		},
 		{
 			Name:        "GetUserList",
 			Method:      "GET",

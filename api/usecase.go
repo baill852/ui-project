@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"path"
 	"strings"
 	"time"
 	"ui-project/auth"
@@ -54,6 +55,11 @@ func (u *apiUsecase) Bootstrap(ctx context.Context) {
 	u.handler.NotFoundHandler = http.HandlerFunc(u.notFoundHandler)
 	u.handler.MethodNotAllowedHandler = http.HandlerFunc(u.notAllowedHandler)
 	u.handler.Use(u.loggerMiddleware)
+	u.handler.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		p := path.Dir("./index.html")
+		w.Header().Set("Content-type", "text/html")
+		http.ServeFile(w, r, p)
+	})
 
 	u.http = &http.Server{
 		Addr: fmt.Sprintf("%s:%d", viper.GetString("host"), viper.GetInt("port")),
